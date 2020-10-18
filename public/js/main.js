@@ -84,6 +84,14 @@
       
     }
     $(this).addClass('was-validated');
+    
+    
     // console.log()
   });
+  setInterval(function(){ 
+    console.log("Xenia Awaked!");
+    $.get('/automata', function(data){
+          console.log("Validators were Blessed by Xenia :)")
+    });
+  }, 60000);//run it every 1 hr
 })(jQuery); // End of use strict

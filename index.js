@@ -1,8 +1,12 @@
 import bodyParser from 'body-parser';
+import { Console } from 'console';
 
 import { reset } from 'nodemon';
-//import { Console } from 'console';
 
+import 'dotenv/config';
+
+const denom = process.env.DENOM;
+const chainId = process.env.CHAIN_ID;
 
 const compression = require('compression');
 const helmet = require('helmet');
@@ -13,8 +17,8 @@ const express = require('express')
 const app = express()
 const port = 1337
 
-const checkInterval = hours * 60 * 60 * 1000 // change it to the blocak analysis check time 2hrs
-const cyclicTime = hours * 60 * 60 * 1000 // cyclic time to elect active valdito to delegate 
+//const checkInterval = hours * 60 * 60 * 1000 // change it to the blocak analysis check time 2hrs
+//const cyclicTime = hours * 60 * 60 * 1000 // cyclic time to elect active valdito to delegate 
 
 
 const low = require('lowdb')
@@ -57,6 +61,13 @@ app.post('/xenius', (req, res) => {
  //handle the bot autonmous    
     app.get('/automata', function (req, res) {
         // return with the bot status 
+        XeniaBot.analyze().then( x => {
+            x.forEach(element => {
+                XeniaBot.delegate(element).then(res => {
+                    console.log(res)
+                })
+            });
+        })
     });
 
   // handle the cyclic rounds for delegation each day    
