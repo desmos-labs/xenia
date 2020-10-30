@@ -1,6 +1,4 @@
-import { Console } from 'console';
 
-import { reset } from 'nodemon';
 
 import 'dotenv/config';
 
@@ -8,7 +6,7 @@ const  mins = process.env.Min;
 
 const XeniaBot = require("./XeniaBotCore.js")
 
-let  test = 1 * 60000  
+//let  test = 1 * 60000  
 
 
 const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to delegate 
@@ -66,7 +64,7 @@ const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to de
 XeniaBot.greetingMsg(); // Say Hi to the world :)
 XeniaBot.init().then(res=>{
     console.log("Xenia Intialized!!")
-    setInterval(automata, test)//cyclicTime)
+    setInterval(automata, cyclicTime)//test)
 
 })
 
