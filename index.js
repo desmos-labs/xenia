@@ -1,85 +1,72 @@
-import bodyParser from 'body-parser';
 import { Console } from 'console';
 
 import { reset } from 'nodemon';
 
 import 'dotenv/config';
 
-const denom = process.env.DENOM;
-const chainId = process.env.CHAIN_ID;
-
-const compression = require('compression');
-const helmet = require('helmet');
+const  mins = process.env.Min;
 
 const XeniaBot = require("./XeniaBotCore.js")
 
-const express = require('express')
-const app = express()
-const port = 1337
-
-//const checkInterval = hours * 60 * 60 * 1000 // change it to the blocak analysis check time 2hrs
-//const cyclicTime = hours * 60 * 60 * 1000 // cyclic time to elect active valdito to delegate 
+let  test = 1 * 60000  
 
 
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
+const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to delegate 
 
-const adapter = new FileSync('db.json')
-const db = low(adapter)
-const activeList = db.get('activeValidator');
-const turnRoulette = db.get('Roulette');
+
+//const low = require('lowdb')
+//const FileSync = require('lowdb/adapters/FileSync')
+
+//const adapter = new FileSync('db.json')
+//const db = low(adapter)
+
+//const turnRoulette = db.get('xRoulette');
 // db.defaults({ history: [] })
 //   .write()
-  
-app.use(compression());
-app.use(helmet());
 
-app.set('view engine', 'pug')
-
-const path = require('path');
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.get('/', function (req, res) {
-    res.render('index', {
-        chainId: chainId,
-        denom: denom
-    });
-});
-
-app.post('/xenius', (req, res) => {
-    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        
-// check the operator address if it has been delegated and if eligable for autodelegation or not   
-            res.send({message: 'This Operator have been blessed by Xenia'});
-        
-        
-    });
 
  //handle the bot autonmous    
-    app.get('/automata', function (req, res) {
-        // return with the bot status 
-        XeniaBot.analyze().then( x => {
-            x.forEach(element => {
-                XeniaBot.delegate(element).then(res => {
-                    console.log(res)
-                })
-            });
-        })
-    });
-
-  // handle the cyclic rounds for delegation each day    
-    app.get('/roulette', function (req, res) {
-          
-    });
-   
+ const automata = ()=> {
+    let prevHeight =  XeniaBot.rouletteHistory.value()
+    if(isNaN(parseInt(prevHeight.previousHeight))){
+      console.log("Seed not intialized ...")
     
-  
+    }
+    else{
+         
+    XeniaBot.getSlashingParams().then(res => {
+        let signedWindow = "15"//res.signed_blocks_window;
+        
+        console.log("previous Height = "+ prevHeight.previousHeight)
+        XeniaBot.roulette(prevHeight.previousHeight, signedWindow).then(roulettea =>{
+            //console.log(roulettea)
+            if(roulettea.state){
+                XeniaBot.analyze(roulettea.height, signedWindow).then( x => {
+                    XeniaBot.statusMsg("Xenia is Blessing Validators ... (^__^)")
+                    x.forEach(element => {
+                        XeniaBot.delegate(element).then(res => {
+                            //console.log(res)
+                            })
+                                   
+                    });
+                    console.log("Autodelegating....!!")   
+                });
+              
+            }    
+        
+                        
+        });
+        
+    });       
+    
+    }
 
+}
 
-   
+XeniaBot.greetingMsg(); // Say Hi to the world :)
+XeniaBot.init().then(res=>{
+    console.log("Xenia Intialized!!")
+    setInterval(automata, test)//cyclicTime)
 
+})
 
-app.listen(port, () => console.log(`Xenia Connected on... ${port}!`))

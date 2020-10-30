@@ -1,18 +1,12 @@
 {
-  "activeValidator": [
+  "xRoulette": {
+    "previousHeight": ""
+  },
+  "TxHistory": [
     {
       "valAddress": "bech32",
-      "votePower": 12,
-      "Performance": 80
+      "amount": 1000,
+      "txTime": 53393983498
     }
-  ],
-  "Roulette":[{
-    "ValAdress":"bech32",
-    "ID":""
-  }],
-  "TxHistory":[{
-    "valAddress": "bech32",
-    "amount": 1000,
-    "txTime": 53393983498
-  }]
+  ]
 }
