@@ -117,7 +117,7 @@ const getMatchingValAddress =async (height) => {
 }
 
 const greetingMsg = () => {
-    const greeting = chalk.yellow.bold("Desmos Autodelgator Bot");
+    const greeting = chalk.yellow.bold("Desmos Autodelegator Bot");
 
   const boxenOptions = {
   padding: 1,
