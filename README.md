@@ -6,11 +6,14 @@ The bot will monitor the performance of validators across signed window. The val
 
 
 
-Rename `.env.sample` to `.env` and update the faucet wallet mnemonic phrase.
+Rename `.env.sample` to `.env` and update the  mnemonic phrase.
+
+Rename `db.json.sample` to `db.json` and update 
+
 
 ``` sh
 npm install --save
-npm dev
+npm run start
 ```
 
 
