@@ -214,7 +214,7 @@ const analyze =  async (latest_height,blocksWindow)=>{
 
 //intiatlize the first height for Xenia
 const init = async()=>{
-  stepMsg("Intiation of seed and dry run...(*_*)")
+  stepMsg("Initiation of seed and dry run...(*_*)")
   let latestHeight =  await seed();
   let rouletteBlock =  rouletteHistory.value()
   if(rouletteBlock.previousHeight==""){

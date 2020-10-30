@@ -27,7 +27,7 @@ const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to de
  const automata = ()=> {
     let prevHeight =  XeniaBot.rouletteHistory.value()
     if(isNaN(parseInt(prevHeight.previousHeight))){
-      console.log("Seed not intialized ...")
+      console.log("Seed not initialized ...")
     
     }
     else{
@@ -63,7 +63,7 @@ const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to de
 
 XeniaBot.greetingMsg(); // Say Hi to the world :)
 XeniaBot.init().then(res=>{
-    console.log("Xenia Intialized!!")
+    console.log("Xenia Initialized!!")
     setInterval(automata, cyclicTime)//test)
 
 })
