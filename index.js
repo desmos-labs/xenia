@@ -21,6 +21,11 @@ const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to de
 //const turnRoulette = db.get('xRoulette');
 // db.defaults({ history: [] })
 //   .write()
+const DEF_DELAY = 1000;
+
+const delay = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms || DEF_DELAY));
+}
 
 
  //handle the bot autonmous    
@@ -42,12 +47,17 @@ const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to de
                 XeniaBot.analyze(roulettea.height, signedWindow).then( x => {
                     XeniaBot.statusMsg("Xenia is Blessing Validators ... (^__^)")
                     x.forEach(element => {
-                        XeniaBot.delegate(element).then(res => {
-                            //console.log(res)
-                            })
-                                   
+
+                        
+                        setTimeout(function(){
+                            XeniaBot.delegate(element)
+                            console.log("wait for Sever Response .......!!")                   
+                       }, 10000) 
+                        
                     });
-                    console.log("Autodelegating....!!")   
+                    console.log("Autodelegating....!!") 
+                    
+
                 });
               
             }    

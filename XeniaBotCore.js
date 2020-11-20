@@ -174,6 +174,20 @@ const statusMsg = (msgTxt) =>{
 
 }
 
+const errorMsg = (msgTxt) =>{
+  const status = chalk.white.bold(msgTxt);
+  const boxenOptions = {
+  padding: 1,
+  margin: 1,
+  borderStyle: "round",
+  borderColor: "yellow",
+  backgroundColor: "#ff0000"
+  };
+  const msgBox = boxen( status, boxenOptions )
+  console.log(msgBox)
+
+}
+
 
 
 
@@ -250,13 +264,41 @@ return output
 }
 
 
- 
+ const getAccountInfo  = async(address) =>{
+    let url = lcdAddress + "/auth/accounts/" + address
+    let res = await axios.get(url);
+    return res.data
+ }
 
+ const broadcastTX = (signedTx, valAddress) => {
+    let url  =  lcdAddress + "/txs"
+    let option = { headers: {
+			'Content-Type': 'application/json'
+    }};
+    
+    axios.post(url, signedTx, option).then( res => {
+      let now = Date.now();
+            //console.log(response)
+            txHistory
+                .push({ valAddress: valAddress,amount: amount, txTime: now})
+                .write()
+            
+            
+            console.log(valAddress + " delegated with " + amount +" "+denom)
+           
+    }).catch( err => {
+      errorMsg ("TX->ERROR: " + String(err) )
+    })
+
+
+ } 
 
 //Function handle the delegation transaction
-const delegate = async(valAddress) =>{
-    
-    cosmos.getAccounts(address).then(data => {
+const delegate = (valAddress) =>{
+  //cosmos.getAccounts
+  try{
+    getAccountInfo(address).then(data => {
+      //console.log(data.result)
         let stdSignMsg = cosmos.NewStdMsg({
             type: "cosmos-sdk/MsgDelegate",
             delegator_address: address,
@@ -264,27 +306,31 @@ const delegate = async(valAddress) =>{
             amountDenom: denom,
             amount: amount,
             feeDenom: denom,
-            fee: 0,
+            fee: 10000,
             gas: 200000,
             memo: memo,
             account_number: data.result.value.account_number,
             sequence: data.result.value.sequence
         });
+           
 
         const signedTx = cosmos.sign(stdSignMsg, ecpairPriv);
-        cosmos.broadcast(signedTx).then(response => {
-            let now = Date.now();
-            //console.log(response)
-            txHistory
-                .push({ valAddress: valAddress,amount: amount, txTime: now})
-                .write()
-            
-            
-            console.log(valAddress + " delegated with " + amount + " denom")
-           
-        });
+       
+        //cosmos.broadcast
+        broadcastTX(signedTx, valAddress)
+        
     })
- return "AutoDelegation Done !!"
+    //return "AutoDelegation Done !!"
+    
+  }
+  catch(err){
+
+    
+      errorMsg ("Account Info -> ERROR: " + err )
+    
+
+  }
+ 
 }   
 
 
