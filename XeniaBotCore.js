@@ -32,6 +32,7 @@ const adapter = new FileSync('db.json')
 const db = low(adapter)
 const txHistory = db.get('TxHistory');
 const rouletteHistory = db.get('xRoulette');
+const eligibleValidatorsPool =  db.get('ValPool');
 
 
 const chalk = require("chalk");
@@ -221,7 +222,7 @@ const analyze =  async (latest_height,blocksWindow)=>{
   let mAddress = matchedValidators.map(lValidator => { return lValidator.operator_address; });
       
   console.log("Xenia Bot ... Analysis Completed !!")
-
+  console.log(mAddress.length)
   return mAddress
 
 }
@@ -264,35 +265,103 @@ return output
 }
 
 
- const getAccountInfo  = async(address) =>{
-    let url = lcdAddress + "/auth/accounts/" + address
-    let res = await axios.get(url);
-    return res.data
+const getAccountInfo  = async(address) =>{
+  let url = lcdAddress + "/auth/accounts/" + address
+  let res = await axios.get(url);
+  return res.data
+}
+
+const broadcastTX = (signedTx, valAddress) => {
+  let url  =  lcdAddress + "/txs"
+  let option = { headers: {
+    'Content-Type': 'application/json'
+  }};
+  
+  axios.post(url, signedTx, option).then( res => {
+    let now = Date.now();
+          //console.log(response)
+          txHistory
+              .push({ valAddress: valAddress,amount: amount, txTime: now})
+              .write()
+          
+          
+          console.log(valAddress + " delegated with " + amount +" "+denom)
+          
+  }).catch( err => {
+    errorMsg ("TX->ERROR: " + String(err) )
+  })
+
+
+} 
+
+const  convertStringToBytes = (str) => {
+	if (typeof str !== "string") {
+	    throw new Error("str expects a string")
+	}
+	var myBuffer = [];
+	var buffer = new Buffer(str, 'utf8');
+	for (var i = 0; i < buffer.length; i++) {
+	    myBuffer.push(buffer[i]);
+	}
+	return myBuffer;
+}
+
+function sortObject(obj) {
+	if (obj === null) return null;
+	if (typeof obj !== "object") return obj;
+	if (Array.isArray(obj)) return obj.map(sortObject);
+	const sortedKeys = Object.keys(obj).sort();
+	const result = {};
+	sortedKeys.forEach(key => {
+		result[key] = sortObject(obj[key])
+	});
+	return result;
+}
+
+
+const DelgMsg = (valAddresses, account_number, sequence) => {
+  let msgtx= "{"
+  valAddresses.forEach((i) => {
+  let formateMsg =  {
+         account_number: String(account_number),
+       chain_id: chainId,
+       fee: { 
+         amount: [ 
+           { 
+             amount: String(10000), 
+             denom: denom
+           } 
+         ], 
+         gas: String(200000) 
+       },
+       memo: memo,
+       msgs: [{
+         type: "cosmos-sdk/MsgDelegate", 
+         value: {
+               amount: {
+                 amount: String(amount),
+                 denom: denom
+               },
+               delegator_address: address,
+               validator_address: i
+             }
+           }
+           ],
+       sequence: String(sequence) 
+     };
+    msgtx +=  JSON.stringify(formateMsg) + ","
+  });
+  let txMsg =  msgtx.slice(0, -1);
+  txMsg += "}"
+  console.log(txMsg)
+  const stdSignMsg = new Object;
+  stdSignMsg.json = JSON.parse(JSON.stringify(txMsg))
+  stdSignMsg.bytes = convertStringToBytes(JSON.stringify(sortObject(stdSignMsg.json)));
+ 
+   return stdSignMsg;
  }
-
- const broadcastTX = (signedTx, valAddress) => {
-    let url  =  lcdAddress + "/txs"
-    let option = { headers: {
-			'Content-Type': 'application/json'
-    }};
-    
-    axios.post(url, signedTx, option).then( res => {
-      let now = Date.now();
-            //console.log(response)
-            txHistory
-                .push({ valAddress: valAddress,amount: amount, txTime: now})
-                .write()
-            
-            
-            console.log(valAddress + " delegated with " + amount +" "+denom)
-           
-    }).catch( err => {
-      errorMsg ("TX->ERROR: " + String(err) )
-    })
-
-
- } 
-
+ 
+  
 //Function handle the delegation transaction
 const delegate = (valAddress) =>{
   //cosmos.getAccounts
@@ -335,4 +404,4 @@ const delegate = (valAddress) =>{
 
 
 
-module.exports ={analyze, delegate,roulette,greetingMsg,getSlashingParams,init,statusMsg,rouletteHistory}    
+module.exports ={analyze, delegate,roulette,greetingMsg,getSlashingParams,init,statusMsg,rouletteHistory, eligibleValidatorsPool, db}

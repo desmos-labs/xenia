@@ -21,11 +21,23 @@ const cyclicTime = mins * 60 * 1000 // cyclic time to elect active valdito to de
 //const turnRoulette = db.get('xRoulette');
 // db.defaults({ history: [] })
 //   .write()
-const DEF_DELAY = 1000;
+const getRound = () => {
+   let list = XeniaBot.eligibleValidatorsPool.value(); 
+    
+    if (list === undefined || list.length == 0) {
+        // array empty or does not exist
+        console.log("no List identified ")
+    }
+    else{
+        XeniaBot.delegate(list.shift());
+        XeniaBot.db.set('ValPool', list).write()
 
-const delay = (ms) => {
-    return new Promise(resolve => setTimeout(resolve, ms || DEF_DELAY));
+
+    }
+    
 }
+
+
 
 
  //handle the bot autonmous    
@@ -46,15 +58,16 @@ const delay = (ms) => {
             if(roulettea.state){
                 XeniaBot.analyze(roulettea.height, signedWindow).then( x => {
                     XeniaBot.statusMsg("Xenia is Blessing Validators ... (^__^)")
-                    x.forEach(element => {
-
+                    
+                    //x.forEach(element => {
+                     XeniaBot.db.set('ValPool', x).write()
+                     setInterval(getRound, 2000)
+                      //  setTimeout(function(){
+                           // XeniaBot.delegate(x)
+                        //    console.log("wait for Sever Response .......!!")                   
+                       //}, 10000) 
                         
-                        setTimeout(function(){
-                            XeniaBot.delegate(element)
-                            console.log("wait for Sever Response .......!!")                   
-                       }, 10000) 
-                        
-                    });
+                   // });
                     console.log("Autodelegating....!!") 
                     
 
@@ -75,6 +88,7 @@ XeniaBot.greetingMsg(); // Say Hi to the world :)
 XeniaBot.init().then(res=>{
     console.log("Xenia Initialized!!")
     setInterval(automata, cyclicTime)//test)
+
 
 })
 
