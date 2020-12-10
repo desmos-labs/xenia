@@ -318,48 +318,47 @@ function sortObject(obj) {
 	return result;
 }
 
-
 const DelgMsg = (valAddresses, account_number, sequence) => {
-  let msgtx= "{"
-  valAddresses.forEach((i) => {
-  let formateMsg =  {
-         account_number: String(account_number),
-       chain_id: chainId,
-       fee: { 
-         amount: [ 
-           { 
-             amount: String(10000), 
-             denom: denom
-           } 
-         ], 
-         gas: String(200000) 
-       },
-       memo: memo,
-       msgs: [{
-         type: "cosmos-sdk/MsgDelegate", 
-         value: {
-               amount: {
-                 amount: String(amount),
-                 denom: denom
-               },
-               delegator_address: address,
-               validator_address: i
-             }
-           }
-           ],
-       sequence: String(sequence) 
-     };
-    msgtx +=  JSON.stringify(formateMsg) + ","
-  });
-  let txMsg =  msgtx.slice(0, -1);
-  txMsg += "}"
-  console.log(txMsg)
-  const stdSignMsg = new Object;
-  stdSignMsg.json = JSON.parse(JSON.stringify(txMsg))
-  stdSignMsg.bytes = convertStringToBytes(JSON.stringify(sortObject(stdSignMsg.json)));
- 
-   return stdSignMsg;
- }
+  let allMsgs =  []
+    valAddresses.forEach((i) => {
+      let formateMsg = {}
+      formateMsg.type =  "cosmos-sdk/MsgDelegate", 
+      formateMsg.value = {
+            amount: {
+              amount: String(amount),
+              denom: denom
+            },
+            delegator_address: address,
+            validator_address: i
+          }
+      allMsgs.push(formateMsg)
+    });
+    const stdSignMsg = new Object;
+    let gases =  allMsgs.length * 200000
+    let fees= Math.ceil(gases * 0.025)
+    stdSignMsg.json = 
+    {
+        account_number: String(account_number),
+      chain_id: chainId,
+      fee: { 
+        amount: [ 
+          { 
+            amount: String(fees), 
+            denom: denom
+          } 
+        ], 
+        gas: String(gases) 
+      },
+      memo: memo,
+      msgs: allMsgs,
+      sequence: String(sequence) 
+    }
+  
+    stdSignMsg.bytes = convertStringToBytes(JSON.stringify(sortObject(stdSignMsg.json)));
+  
+    return stdSignMsg;
+  }
+
  
   
 //Function handle the delegation transaction
@@ -368,23 +367,13 @@ const delegate = (valAddress) =>{
   try{
     getAccountInfo(address).then(data => {
       //console.log(data.result)
-        let stdSignMsg = cosmos.NewStdMsg({
-            type: "cosmos-sdk/MsgDelegate",
-            delegator_address: address,
-            validator_address: valAddress,
-            amountDenom: denom,
-            amount: amount,
-            feeDenom: denom,
-            fee: 10000,
-            gas: 200000,
-            memo: memo,
-            account_number: data.result.value.account_number,
-            sequence: data.result.value.sequence
-        });
-           
+        let stdSignMsg = DelgMsg(valAddress, data.result.value.account_number , data.result.value.sequence)
+         
+         console.log(stdSignMsg)  
 
         const signedTx = cosmos.sign(stdSignMsg, ecpairPriv);
-       
+         
+        console.log(signedTx)
         //cosmos.broadcast
         broadcastTX(signedTx, valAddress)
         

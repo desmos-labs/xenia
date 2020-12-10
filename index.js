@@ -60,10 +60,10 @@ const getRound = () => {
                     XeniaBot.statusMsg("Xenia is Blessing Validators ... (^__^)")
                     
                     //x.forEach(element => {
-                     XeniaBot.db.set('ValPool', x).write()
-                     setInterval(getRound, 2000)
+                     //XeniaBot.db.set('ValPool', x).write()
+                     //setInterval(getRound, 2000)
                       //  setTimeout(function(){
-                           // XeniaBot.delegate(x)
+                            XeniaBot.delegate(x)
                         //    console.log("wait for Sever Response .......!!")                   
                        //}, 10000) 
                         
