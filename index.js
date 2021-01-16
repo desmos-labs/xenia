@@ -50,7 +50,7 @@ const getRound = () => {
     else{
          
     XeniaBot.getSlashingParams().then(res => {
-        let signedWindow = "15"//res.signed_blocks_window;
+        let signedWindow = res.signed_blocks_window; //"15"
         
         console.log("previous Height = "+ prevHeight.previousHeight)
         XeniaBot.roulette(prevHeight.previousHeight, signedWindow).then(roulettea =>{

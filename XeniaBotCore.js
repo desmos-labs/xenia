@@ -334,7 +334,7 @@ const DelgMsg = (valAddresses, account_number, sequence) => {
       allMsgs.push(formateMsg)
     });
     const stdSignMsg = new Object;
-    let gases =  allMsgs.length * 200000
+    let gases =  allMsgs.length * 120000//200000
     let fees= Math.ceil(gases * 0.025)
     stdSignMsg.json = 
     {
