@@ -41,6 +41,7 @@ const figlet = require("figlet");
 
 
 
+///new API
 //function get the latest Validator and height 
 const getValidatorInfo = async (height) => {
   let url = lcdAddress+"/validatorsets/"+height;
@@ -51,10 +52,10 @@ const getValidatorInfo = async (height) => {
 }  
 
 //fucntion ge the bounded validators list in certain height 
-const geteligible = async (blockHeight) => {
-   let url = lcdAddress+"/staking/validators?status=bonded&height="+blockHeight;
+const getEligible = async (blockHeight) => {
+   let url = lcdAddress+"/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&height="+blockHeight;
  let res = await axios.get(url);
- let val = res.data.result
+ let val = res.data
  //console.log(val)
  return val
 }
@@ -71,10 +72,10 @@ const getBlockCommit = async (blockHeight) => {
 
 //function to get signiing status for the validators 
  const getSignInfo = async (height) => {
- let url = lcdAddress+"/slashing/signing_infos?height="+height;
+ let url = lcdAddress+"/cosmos/slashing/v1beta1/signing_infos?height="+height;
  let res = await axios.get(url);
  let dta = res.data
- //console.log(val)
+ //console.log(dta)
  return dta
 }
 
@@ -87,33 +88,31 @@ let seedHeight = res.data.block.header.height
   return seedHeight
 }
 
-
-
 //fucntion get slasahing parameters.
 const getSlashingParams = async () => {
-   let url = lcdAddress + "/slashing/parameters"
+   let url = lcdAddress + "/cosmos/slashing/v1beta1/params"
    let res = await axios.get(url);
-  return(res.data.result)
+  return(res.data)
 
 }
 
 const getMatchingValAddress =async (height) => {
   let addressList = []
-  let eligible = await geteligible(height)
-  let eligibleAddress = eligible.map(eligableValidator => { return eligableValidator.consensus_pubkey; });
+  let eligible = await getEligible(height)
+  let eligibleAddress = eligible.validators.map(eligableValidator => { return eligableValidator.consensus_pubkey.key; });
   let valList = await getValidatorInfo(height)
   console.log(eligibleAddress.length)
   console.log(valList.length)
-  let val= valList.filter( lv => eligibleAddress.includes(lv.pub_key));
+  let val= valList.filter( lv => eligibleAddress.includes(lv.pub_key.value));
   val.forEach((l)=>{
     let output ={}
     output.address =  l.address;
-    output.pub_key =  l.pub_key;
-    output.operator_address =  eligible.filter((lv)=>{return lv.consensus_pubkey == l.pub_key})[0].operator_address;
+    output.pub_key =  l.pub_key.value;
+    output.operator_address =  eligible.validators.filter((lv)=>{return lv.consensus_pubkey.key == l.pub_key.value})[0].operator_address;
     output.voting_power = l.voting_power 
     addressList.push(output); 
   });
-  
+  //console.log(addressList)
   return addressList
 }
 
@@ -190,8 +189,6 @@ const errorMsg = (msgTxt) =>{
 }
 
 
-
-
 // function analyze signing blocks in certain signing window and calculate the validators performance 
 const analyze =  async (latest_height,blocksWindow)=>{
   //let latest_height = await seed()
@@ -201,7 +198,7 @@ const analyze =  async (latest_height,blocksWindow)=>{
   let validtorList = []
   let eligible_ =  eligible.map(eligableValidator => { return eligableValidator.address; });
 
-  let filteredData = signDta.result.filter(dta => eligible_.includes(dta.address));
+  let filteredData = signDta.info.filter(dta => eligible_.includes(dta.address));
    
   filteredData.forEach((i)=>{
     let output = {}
@@ -223,6 +220,7 @@ const analyze =  async (latest_height,blocksWindow)=>{
       
   console.log("Xenia Bot ... Analysis Completed !!")
   console.log(mAddress.length)
+  //console.log(mAddress)
   return mAddress
 
 }
@@ -266,7 +264,7 @@ return output
 
 
 const getAccountInfo  = async(address) =>{
-  let url = lcdAddress + "/auth/accounts/" + address
+  let url = lcdAddress + "/cosmos/auth/v1beta1/accounts/" + address
   let res = await axios.get(url);
   return res.data
 }
@@ -299,7 +297,7 @@ const  convertStringToBytes = (str) => {
 	    throw new Error("str expects a string")
 	}
 	var myBuffer = [];
-	var buffer = new Buffer(str, 'utf8');
+	var buffer =  Buffer.from(str, 'utf8');
 	for (var i = 0; i < buffer.length; i++) {
 	    myBuffer.push(buffer[i]);
 	}
@@ -367,7 +365,7 @@ const delegate = (valAddress) =>{
   try{
     getAccountInfo(address).then(data => {
       //console.log(data.result)
-        let stdSignMsg = DelgMsg(valAddress, data.result.value.account_number , data.result.value.sequence)
+        let stdSignMsg = DelgMsg(valAddress, data.account_number , data.sequence)
          
          console.log(stdSignMsg)  
 
